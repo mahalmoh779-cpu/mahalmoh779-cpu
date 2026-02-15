@@ -1,0 +1,364 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>سحب الجوائز الكبرى | Premium Prize Lottery</title>
+    
+    <style>
+        /* --- CSS VARIABLES & THEME --- */
+        :root {
+            --primary-gold: #d4af37;
+            --gold-glow: rgba(212, 175, 55, 0.5);
+            --dark-bg: #0a0a0b;
+            --card-bg: rgba(255, 255, 255, 0.05);
+            --text-main: #ffffff;
+            --text-dim: #b0b0b0;
+            --transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-color: var(--dark-bg);
+            color: var(--text-main);
+            overflow-x: hidden;
+            line-height: 1.6;
+            min-height: 100vh;
+        }
+
+        /* Background Effects */
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: radial-gradient(circle at 50% 50%, #1a1a2e 0%, #0a0a0b 100%);
+            z-index: -1;
+        }
+
+        /* --- DYNAMIC TOP BANNER --- */
+        .top-banner {
+            background: linear-gradient(90deg, #8a642a, #d4af37, #8a642a);
+            color: #000;
+            padding: 12px 15px;
+            text-align: center;
+            font-weight: bold;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.6);
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            font-size: 0.95rem;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px 15px;
+            padding-bottom: 100px; /* Space for sticky badge */
+        }
+
+        .hero {
+            text-align: center;
+            margin-bottom: 40px;
+            animation: fadeInDown 1s ease;
+        }
+
+        .glow-text {
+            font-size: clamp(1.8rem, 8vw, 3.5rem);
+            color: var(--primary-gold);
+            text-shadow: 0 0 25px var(--gold-glow);
+            margin-bottom: 10px;
+            font-weight: 900;
+        }
+
+        /* --- PRIZES GRID --- */
+        .prizes-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 20px;
+        }
+
+        .prize-card {
+            background: var(--card-bg);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 20px;
+            padding: 15px;
+            text-align: center;
+            backdrop-filter: blur(12px);
+            transition: var(--transition);
+            cursor: pointer;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .prize-card:hover {
+            transform: translateY(-8px);
+            border-color: var(--primary-gold);
+            box-shadow: 0 10px 30px rgba(212, 175, 55, 0.2);
+        }
+
+        .prize-image {
+            width: 100%;
+            height: 180px;
+            object-fit: cover;
+            border-radius: 15px;
+            margin-bottom: 15px;
+            background: #111;
+        }
+
+        .prize-card h3 {
+            color: var(--primary-gold);
+            font-size: 1.25rem;
+            margin-bottom: 5px;
+        }
+
+        .probability-tag {
+            display: inline-block;
+            margin-top: 10px;
+            font-size: 0.75rem;
+            padding: 4px 12px;
+            background: rgba(212, 175, 55, 0.1);
+            border: 1px solid var(--primary-gold);
+            border-radius: 50px;
+            color: var(--primary-gold);
+            font-weight: bold;
+        }
+
+        /* --- STICKY PROFESSIONAL CREDITS --- */
+        .sticky-credits {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 999;
+            width: auto;
+            white-space: nowrap;
+            animation: fadeInUp 1s ease;
+        }
+
+        .dev-badge {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 10px 25px;
+            background: rgba(10, 10, 11, 0.85);
+            border: 1px solid var(--primary-gold);
+            border-radius: 50px;
+            backdrop-filter: blur(15px);
+            box-shadow: 0 5px 25px rgba(0,0,0,0.5), 0 0 15px var(--gold-glow);
+            font-size: 0.9rem;
+            color: var(--text-main);
+        }
+
+        .dev-name {
+            color: var(--primary-gold);
+            font-weight: 900;
+            text-shadow: 0 0 8px var(--gold-glow);
+        }
+
+        /* --- MODAL SYSTEM --- */
+        .modal-overlay {
+            position: fixed;
+            top:0; left:0; width:100%; height:100%;
+            background: rgba(0,0,0,0.92);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 2000;
+            backdrop-filter: blur(12px);
+            padding: 20px;
+        }
+
+        .modal-card {
+            background: #111113;
+            border: 1px solid var(--primary-gold);
+            padding: 30px 20px;
+            border-radius: 25px;
+            max-width: 450px;
+            width: 100%;
+            text-align: center;
+            animation: modalPop 0.4s ease-out;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #d4af37, #f1d592);
+            color: #000;
+            border: none;
+            padding: 12px 25px;
+            font-size: 1.1rem;
+            font-weight: 800;
+            border-radius: 10px;
+            cursor: pointer;
+            margin-top: 20px;
+            width: 100%;
+        }
+
+        .ticket-number {
+            display: block;
+            font-size: 2.2rem;
+            letter-spacing: 5px;
+            color: var(--primary-gold);
+            margin: 15px 0;
+            font-weight: 900;
+            border: 1px dashed var(--primary-gold);
+            padding: 10px;
+            border-radius: 10px;
+        }
+
+        /* --- STATES --- */
+        .locked { filter: grayscale(1); opacity: 0.4; pointer-events: none; }
+
+        @keyframes fadeInDown { from { opacity: 0; transform: translateY(-20px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes fadeInUp { from { opacity: 0; transform: translate(-50%, 20px); } to { opacity: 1; transform: translate(-50%, 0); } }
+        @keyframes modalPop { from { transform: scale(0.9); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+
+        @media (max-width: 480px) {
+            .prizes-grid { grid-template-columns: 1fr; }
+            .dev-badge { font-size: 0.8rem; padding: 8px 15px; }
+        }
+    </style>
+</head>
+<body>
+
+    <header class="top-banner" id="topBanner">
+        <p id="bannerText">⚠️ انتبه: لا يمكنك الدخول إلا في سحب لجائزة واحدة فقط — اختر جائزتك بعناية</p>
+    </header>
+
+    <main class="container">
+        <section class="hero">
+            <h1 class="glow-text">سحوبات النخبة 2026</h1>
+            <p style="font-size: 0.9rem; color: var(--text-dim);">فرصتك الذهبية للفوز بإحدى جوائزنا الكبرى</p>
+        </section>
+
+        <div class="prizes-grid" id="prizesGrid"></div>
+    </main>
+
+    <div class="sticky-credits">
+        <div class="dev-badge">
+            <span>تم التطوير بواسطة</span>
+            <span class="dev-name">المبرمج والهاكر محمود المحمد</span>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="modalOverlay">
+        <div class="modal-card">
+            <div id="modalContent"></div>
+        </div>
+    </div>
+
+    <script>
+        const PRIZES_DATA = [
+            { id: 1, title: 'بيت فاخر', desc: 'الموقع: حمص فقط', dist: 'سوريا', prob: '2%', img: 'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&q=80&w=800' },
+            { id: 2, title: 'سيارة فاخرة', desc: 'موديل السنة - دفع رباعي', dist: 'سوريا', prob: '4%', img: 'https://images.unsplash.com/photo-1503376780353-7e6692767b70?auto=format&fit=crop&q=80&w=800' },
+            { id: 3, title: 'جائزة مالية كبيرة', desc: 'شيك مصدق فوري', dist: 'سوريا', prob: '6%', img: 'https://images.unsplash.com/photo-1580519542036-c47de6196ba5?auto=format&fit=crop&q=80&w=800' },
+            { id: 4, title: 'دراجة نارية حديثة', desc: 'إصدار رياضي خاص', dist: 'سوريا', prob: '8%', img: 'https://images.unsplash.com/photo-1558981403-c5f91cbba527?auto=format&fit=crop&q=80&w=800' },
+            { id: 5, title: 'لابتوب احترافي', desc: 'أعلى المواصفات التقنية', dist: 'سوريا', prob: '10%', img: 'https://images.unsplash.com/photo-1517336714731-489689fd1ca8?auto=format&fit=crop&q=80&w=800' },
+            { id: 6, title: 'تلفاز ذكي فاخر', desc: 'شاشة 8K عملاقة', dist: 'سوريا', prob: '15%', img: 'https://images.unsplash.com/photo-1593359677879-a4bb92f829d1?auto=format&fit=crop&q=80&w=800' },
+            { id: 7, title: 'iPhone 17 Pro Max', desc: 'نسخة التيتانيوم الجديدة', dist: 'عالمي', prob: '30%', img: 'https://images.unsplash.com/photo-1510557880182-3d4d3cba35a5?auto=format&fit=crop&q=80&w=800' },
+            { id: 8, title: 'هاتف محلي ($200)', desc: 'متاح لكافة الدول العربية', dist: 'عالمي', prob: '55%', img: 'https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?auto=format&fit=crop&q=80&w=800' }
+        ];
+
+        const LotteryApp = {
+            isUserLocked: localStorage.getItem('lottery_user_status') === 'locked',
+            
+            init() {
+                this.renderUI();
+                this.updateBannerState();
+                this.bindEvents();
+            },
+
+            renderUI() {
+                const grid = document.getElementById('prizesGrid');
+                grid.innerHTML = PRIZES_DATA.map(prize => `
+                    <div class="prize-card ${this.isUserLocked ? 'locked' : ''}" data-id="${prize.id}">
+                        <img src="${prize.img}" alt="${prize.title}" class="prize-image">
+                        <div>
+                            <h3>${prize.title}</h3>
+                            <p>${prize.desc}</p>
+                            <p>نطاق التوزيع: ${prize.dist}</p>
+                            <span class="probability-tag">نسبة الفوز: ${prize.prob}</span>
+                        </div>
+                    </div>
+                `).join('');
+            },
+
+            updateBannerState() {
+                const banner = document.getElementById('topBanner');
+                const bannerText = document.getElementById('bannerText');
+                if (this.isUserLocked) {
+                    banner.style.background = 'linear-gradient(90deg, #1a1a1a, #444, #1a1a1a)';
+                    banner.style.color = '#fff';
+                    bannerText.innerText = '📩 أرسل هذه الصفحة إلى 5 من أقاربك لتضمن حظوظ فوز أعلى — نتمنى لك التوفيق';
+                }
+            },
+
+            bindEvents() {
+                document.getElementById('prizesGrid').addEventListener('click', (e) => {
+                    const card = e.target.closest('.prize-card');
+                    if (!card) return;
+                    if (this.isUserLocked) {
+                        this.showInfoModal('عذراً، محاولة غير صالحة', 'لقد دخلت بالفعل في سحب مسبق. لا يمكنك الدخول في سحب آخر إلا بعد مرور 15 يوم.');
+                        return;
+                    }
+                    const prize = PRIZES_DATA.find(p => p.id == card.dataset.id);
+                    this.showConfirmSelection(prize);
+                });
+            },
+
+            showConfirmSelection(prize) {
+                const content = document.getElementById('modalContent');
+                content.innerHTML = `
+                    <h2 style="color: var(--primary-gold); font-size: 1.5rem;">لقد اخترت: ${prize.title}</h2>
+                    <p style="margin-top: 10px;">أنت على وشك الدخول في السحب الرسمي لهذه الجائزة.</p>
+                    <button class="btn-primary" onclick="LotteryApp.processDraw()">اضغط للسحب</button>
+                `;
+                this.toggleModal(true);
+            },
+
+            processDraw() {
+                const ticketNumber = Math.floor(100000 + Math.random() * 900000);
+                this.isUserLocked = true;
+                localStorage.setItem('lottery_user_status', 'locked');
+                localStorage.setItem('user_ticket_id', ticketNumber);
+
+                const content = document.getElementById('modalContent');
+                content.innerHTML = `
+                    <h2 style="color: #4CAF50;">✅ تم السحب بنجاح</h2>
+                    <p style="margin-top: 10px;">رقمك التأكيدي هو:</p>
+                    <span class="ticket-number">${ticketNumber}</span>
+                    <p style="font-size: 0.85rem;">سيتم السحب خلال <b>15 يوم</b> وسيتم التواصل معك.</p>
+                    <button class="btn-primary" onclick="LotteryApp.finishFlow()">موافق</button>
+                `;
+            },
+
+            showInfoModal(title, msg) {
+                const content = document.getElementById('modalContent');
+                content.innerHTML = `
+                    <h2 style="color: #ff4444; font-size: 1.5rem;">${title}</h2>
+                    <p style="margin-top: 15px;">${msg}</p>
+                    <button class="btn-primary" onclick="LotteryApp.toggleModal(false)">إغلاق</button>
+                `;
+                this.toggleModal(true);
+            },
+
+            finishFlow() {
+                this.toggleModal(false);
+                this.renderUI();
+                this.updateBannerState();
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            },
+
+            toggleModal(show) {
+                document.getElementById('modalOverlay').style.display = show ? 'flex' : 'none';
+            }
+        };
+
+        document.addEventListener('DOMContentLoaded', () => LotteryApp.init());
+    </script>
+</body>
+</html>
